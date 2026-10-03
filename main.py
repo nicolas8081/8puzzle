@@ -17,7 +17,7 @@ class Node:
 
 def generatePuzzle():
     depthIndex = random.randint(0,4)
-    puzzleIndex = random.randint(0,8)
+    puzzleIndex = random.randint(0,9)
     puzzleDepth4to20 = [ 
     [[1, 2, 5, 3, 4, 8, 6, 7, 0],
     [1, 2, 5, 3, 0, 4, 6, 7, 8],
@@ -93,8 +93,7 @@ def validity(puzzle : list[int]) -> bool:
     for i in range(len(puzzle)):
         for j in range(i + 1, len(puzzle)):
             if(puzzle[i] > puzzle[j] and puzzle[i] != 0 and puzzle[j] != 0):
-                total += 1 
-    print(total)
+                total += 1
     if total % 2 == 0:
         return True
     else:
@@ -130,13 +129,13 @@ def h2(puzzle: list[int]) -> int:
 def pickHeuristic():
     heuristic = input("[h1] = # of misplaced tiles\n[h2] = sum of manhattan distances\n").upper()
     if heuristic == "H1":
-        return heuristic
+        return h1
     elif heuristic == "H2":
-        return heuristic
+        return h2
     else:
         print("Invalid input")
 
-def printPuzzle(puzzle: list[int]) -> int:
+def printPuzzle(puzzle: list[int]):
     for i in range(0,3):
         print(f" {puzzle[i]} |", end="")
     print("\n------------")
@@ -147,21 +146,70 @@ def printPuzzle(puzzle: list[int]) -> int:
         print(f" {puzzle[i]} |", end="")
     print("\n------------")
 
+def actions(puzzle: list[int]):
+    actionsList = []
+    for i in range(len(puzzle)):
+        if puzzle[i] == 0:
+            currentRow = i // 3
+            currentCol = i % 3
+    if currentRow == 0:
+        actionsList.append("Down")
+    elif currentRow == 1:
+            actionsList.append("Down")
+            actionsList.append("Up")
+    else:
+        actionsList.append("Up")
 
-    
+    if currentCol == 0:
+        actionsList.append("Right")
+    elif currentCol == 1:
+        actionsList.append("Right")
+        actionsList.append("Left")
+    else:
+        actionsList.append("Left")
+
+    return actionsList
+
+def pathFinder():
+    ...
+
+def solve(puzzle: list[int], heuristic):
+    goalPuzzle = [0,1,2,3,4,5,6,7,8]
+    parent = Node(puzzle)
+    frontier = []
+    frontier.append((heuristic(parent.state), parent))
+    exploredSet = set()
+    while len(frontier) != 0:
+        best = 0
+        for i in range(len(frontier)):
+            if frontier[i][0] < frontier[best][0]:
+                best = i
+        node = frontier.pop(best)[1]
+
+        if node.state == goalPuzzle:
+            return node
+        elif tuple(node.state) in exploredSet:
+            continue
+        else:
+            exploredSet.add(tuple(node.state))
+            for action in actions(node.state):
+                child = node.childNode(action)
+                functionCost = child.pathCost + heuristic(child.state)
+                frontier.append((functionCost, child))
+
 def main():
     choice = input("Enter A for a random 8-puzzle problem as input\nEnter B to enter your own specific 8-puzzle configuration\n").upper()
     if choice == "A":
         puzzle = generatePuzzle()
         printPuzzle(puzzle)
-        choice = pickHeuristic()
+        heuristic = pickHeuristic(puzzle)
     elif choice == "B":
         puzzle = userPuzzle()
         printPuzzle(puzzle)
         if validity(puzzle) == False:
             print("The puzzle is invalid.")
         else:
-            choice = pickHeuristic()
+            heuristic = pickHeuristic()
     else:
         print("Invalid input")
     
